@@ -1,9 +1,9 @@
 #include <a_samp>
 
-#if defined _ColMan_included
+#if defined _col_man_included
     #endinput
 #endif
-#define _ColMan_included
+#define _col_man_included
 
 
 #define COLOR_MODE_RGBA COLOUR_MODE_RGBA
