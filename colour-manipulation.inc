@@ -1,7 +1,7 @@
 #include <a_samp>
 
 #if defined _col_man_included
-#endinput
+    #endinput
 #endif
 #define _col_man_included
 
@@ -22,6 +22,21 @@ enum ColourMode {
     COLOUR_MODE_ARGB,
     COLOUR_MODE_RGB
 };
+
+
+enum InterpolationMode {
+    INTERPOLATION_MODE_LINEAR,
+    INTERPOLATION_MODE_CORRECTED,
+    INTERPOLATION_MODE_REVERSE,
+}
+
+
+enum ColourComponent {
+    COLOUR_COMPONENT_R,
+    COLOUR_COMPONENT_G,
+    COLOUR_COMPONENT_B,
+    COLOUR_COMPONENT_A,
+}
 
 
 stock GetColourComponents(colour, &r, &g, &b, &a = 0, ColourMode:mode = COLOUR_MODE_RGBA) {
@@ -50,6 +65,24 @@ stock GetColourComponents(colour, &r, &g, &b, &a = 0, ColourMode:mode = COLOUR_M
 }
 
 
+stock GetColourComponent(colour, ColourComponent:component, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new components[4];
+    GetColourComponents(colour, components[0], components[1], components[2], components[3], mode);
+
+    return components[_:component];
+}
+
+
+stock SetColourComponent(colour, ColourComponent:component, value, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new components[4];
+    GetColourComponents(colour, components[0], components[1], components[2], components[3], mode);
+
+    components[_:component] = value & 0xFF;
+
+    return GetColourCode(components[0], components[1], components[2], components[3], mode);
+}
+
+
 stock GetColourCode(r, g, b, a, ColourMode:mode = COLOUR_MODE_RGBA) {
     new colour;
 
@@ -71,23 +104,81 @@ stock GetColourCode(r, g, b, a, ColourMode:mode = COLOUR_MODE_RGBA) {
 }
 
 
-stock LerpColour(colour1, colour2, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
-    new colour[2][4];
-    GetColourComponents(colour1, colour[0][0], colour[0][1], colour[0][2], colour[0][3], mode);
-    GetColourComponents(colour2, colour[1][0], colour[1][1], colour[1][2], colour[1][3], mode);
+stock ConvertColour(colour, ColourMode:from, ColourMode:to, alpha = 0xFF) {
+    switch (from) {
+        case COLOUR_MODE_RGBA: {
+            switch (to) {
+                case COLOUR_MODE_ARGB: {
+                    colour = ((colour << 24) & 0xFF000000) | ((colour >>> 8) & 0xFFFFFF);
+                }
 
-    for (new i; i < 4; i++) {
-        colour[0][i] += floatround((colour[1][i] - colour[0][i]) * amount);
+                case COLOUR_MODE_RGB: {
+                    colour = (colour >>> 8) & 0xFFFFFF;
+                }
+            }
+        }
+
+        case COLOUR_MODE_ARGB: {
+            switch (to) {
+                case COLOUR_MODE_RGBA: {
+                    colour = ((colour << 8) & 0xFFFFFF00) | ((colour >>> 24) & 0xFF);
+                }
+
+                case COLOUR_MODE_RGB: {
+                    colour = colour & 0x00FFFFFF;
+                }
+            }
+        }
+
+        case COLOUR_MODE_RGB: {
+            switch (to) {
+                case COLOUR_MODE_RGBA: {
+                    colour = (colour << 8) | alpha;
+                }
+
+                case COLOUR_MODE_ARGB: {
+                    colour = colour | (alpha << 24);
+                }
+            }
+        }
     }
 
-    return GetColourCode(colour[0][0], colour[0][1], colour[0][2], colour[0][3], mode);
+    return colour;
 }
 
 
-stock DarkenColour(colour, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
+stock InterpolateColours(colour1, colour2, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
+    new colour[2][4], Float:power;
+    GetColourComponents(colour1, colour[0][0], colour[0][1], colour[0][2], colour[0][3], colour_mode);
+    GetColourComponents(colour2, colour[1][0], colour[1][1], colour[1][2], colour[1][3], colour_mode);
+
+    switch (interpolation_mode) {
+        case INTERPOLATION_MODE_LINEAR: {
+            power = 1.0;
+        }
+
+        case INTERPOLATION_MODE_CORRECTED: {
+            power = 2.2;
+        }
+
+        case INTERPOLATION_MODE_REVERSE: {
+            power = 1.0 / 2.2;
+        }
+    }
+
+    for (new i; i < 4; i++) {
+        colour[0][i] += floatround((colour[1][i] - colour[0][i]) * amount);
+        colour[0][i] = floatround(floatpower(float(colour[0][i]) / 255.0, power) * 255.0);
+    }
+
+    return GetColourCode(colour[0][0], colour[0][1], colour[0][2], colour[0][3], colour_mode);
+}
+
+
+stock DarkenColour(colour, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
     new black;
 
-    switch (mode) {
+    switch (colour_mode) {
         case COLOUR_MODE_RGBA: {
             black = 0x000000FF;
         }
@@ -101,14 +192,14 @@ stock DarkenColour(colour, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
         }
     }
 
-    return LerpColour(colour, black, amount, mode);
+    return InterpolateColours(colour, black, amount, colour_mode, interpolation_mode);
 }
 
 
-stock LightenColour(colour, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
+stock LightenColour(colour, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
     new white;
 
-    switch (mode) {
+    switch (colour_mode) {
         case COLOUR_MODE_RGBA: {
             white = 0xFFFFFFFF;
         }
@@ -122,35 +213,5 @@ stock LightenColour(colour, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
         }
     }
 
-    return LerpColour(colour, white, amount, mode);
-}
-
-
-stock RGBAToRGB(colour) {
-    return (colour >>> 8) & 0xFFFFFF;
-}
-
-
-stock RGBToRGBA(colour, alpha) {
-    return (colour << 8) | alpha;
-}
-
-
-stock ARGBToRGB(colour) {
-    return colour & 0x00FFFFFF;
-}
-
-
-stock RGBToARGB(colour, alpha) {
-    return colour | (alpha << 24);
-}
-
-
-stock RGBAToARGB(colour) {
-    return ((colour << 24) & 0xFF000000) | ((colour >>> 8) & 0xFFFFFF);
-}
-
-
-stock ARGBToRGBA(colour) {
-    return ((colour << 8) & 0xFFFFFF00) | ((colour >>> 24) & 0xFF);
+    return InterpolateColours(colour, white, amount, colour_mode, interpolation_mode);
 }
