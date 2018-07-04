@@ -101,3 +101,8 @@ Lightens a colour by interpolating it with the white colour.
 `COLOUR_COMPONENT_B` - Blue
 
 `COLOUR_COMPONENT_A` - Alpha
+
+
+## Notes
+
+The American spelling (color instead of colour) is supported for everything noted above.
