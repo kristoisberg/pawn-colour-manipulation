@@ -47,7 +47,7 @@ enum ColourComponent {
 }
 
 
-stock GetColourComponents(colour, &r, &g, &b, &a = 0, ColourMode:mode = COLOUR_MODE_RGBA) {
+stock GetColourComponents(colour, &r, &g, &b, &a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA) {
     switch (mode) {
         case COLOUR_MODE_RGBA: {
             r = (colour >>> 24) & 0xFF;
@@ -91,7 +91,7 @@ stock SetColourComponent(colour, ColourComponent:component, value, ColourMode:mo
 }
 
 
-stock GetColourCode(r, g, b, a = 0, ColourMode:mode = COLOUR_MODE_RGBA) {
+stock GetColourCode(r, g, b, a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA) {
     new colour;
 
     switch (mode) {
