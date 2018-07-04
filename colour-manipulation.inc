@@ -10,11 +10,19 @@
 #define COLOR_MODE_ARGB COLOUR_MODE_ARGB
 #define COLOR_MODE_RGB COLOUR_MODE_RGB
 
-#define LerpColor LerpColour
+#define COLOR_COMPONENT_R COLOUR_COMPONENT_R
+#define COLOR_COMPONENT_G COLOUR_COMPONENT_G
+#define COLOR_COMPONENT_B COLOUR_COMPONENT_B
+#define COLOR_COMPONENT_A COLOUR_COMPONENT_A
+
+#define GetColorComponents GetColourComponents
+#define GetColorComponent GetColourComponent
+#define SetColorComponent SetColourComponent
+#define GetColorCode GetColourCode
+#define ConvertColor ConvertColour
+#define InterpolateColors InterpolateColours
 #define DarkenColor DarkenColour
 #define LightenColor LightenColour
-#define GetColorComponents GetColourComponents
-#define GetColorCode GetColourCode
 
 
 enum ColourMode {
