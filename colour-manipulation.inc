@@ -184,42 +184,16 @@ stock InterpolateColours(colour1, colour2, Float:amount, ColourMode:colour_mode 
 
 
 stock DarkenColour(colour, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
-    new black;
-
-    switch (colour_mode) {
-        case COLOUR_MODE_RGBA: {
-            black = 0x000000FF;
-        }
-
-        case COLOUR_MODE_ARGB: {
-            black = 0xFF000000;
-        }
-
-        case COLOUR_MODE_RGB: {
-            black = 0x000000;
-        }
-    }
+    new alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, colour_mode),
+        black = ConvertColour(0x000000, COLOUR_MODE_RGB, colour_mode, alpha);
 
     return InterpolateColours(colour, black, amount, colour_mode, interpolation_mode);
 }
 
 
 stock LightenColour(colour, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
-    new white;
-
-    switch (colour_mode) {
-        case COLOUR_MODE_RGBA: {
-            white = 0xFFFFFFFF;
-        }
-
-        case COLOUR_MODE_ARGB: {
-            white = 0xFFFFFFFF;
-        }
-
-        case COLOUR_MODE_RGB: {
-            white = 0xFFFFFF;
-        }
-    }
+    new alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, colour_mode),
+        white = ConvertColour(0xFFFFFF, COLOUR_MODE_RGB, colour_mode, alpha);
 
     return InterpolateColours(colour, white, amount, colour_mode, interpolation_mode);
 }
