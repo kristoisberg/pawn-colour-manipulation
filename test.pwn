@@ -46,9 +46,9 @@ public OnGameModeInit() {
 			colour = InterpolateColours(0xFF0000FF, 0x0000FFFF, float(i) * 0.025, .interpolation_mode = InterpolationMode:j);
 
 			ColourTD[j][i] = TextDrawCreate(106.0 + float(i * 6), 88.0 + float(j * 19), "_");
-		    TextDrawUseBox(ColourTD[j][i], true);
-		    TextDrawBoxColor(ColourTD[j][i], colour);
-		    TextDrawTextSize(ColourTD[j][i], 111.0 + float(i * 6), 20.0);
+			TextDrawUseBox(ColourTD[j][i], true);
+			TextDrawBoxColor(ColourTD[j][i], colour);
+			TextDrawTextSize(ColourTD[j][i], 111.0 + float(i * 6), 20.0);
 		}
 	}
 
