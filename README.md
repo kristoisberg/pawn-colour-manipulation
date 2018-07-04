@@ -19,7 +19,7 @@ Include in your code and begin using the library:
 ## Functions
 
 ```pawn
-GetColourComponents(colour, &r, &g, &b, &a = 0, ColourMode:mode = COLOUR_MODE_RGBA)
+GetColourComponents(colour, &r, &g, &b, &a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA)
 ```
 Extracts the RGB(A) components from a colour code.
 
@@ -37,7 +37,7 @@ Modifies an individual component of an existing colour and returns the new colou
 
 
 ```pawn
-GetColourCode(r, g, b, a = 0, ColourMode:mode = COLOUR_MODE_RGBA)
+GetColourCode(r, g, b, a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA)
 ```
 Creates a colour code from RGB(A) components.
 
