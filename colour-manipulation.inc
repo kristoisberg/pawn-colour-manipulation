@@ -91,7 +91,7 @@ stock SetColourComponent(colour, ColourComponent:component, value, ColourMode:mo
 }
 
 
-stock GetColourCode(r, g, b, a, ColourMode:mode = COLOUR_MODE_RGBA) {
+stock GetColourCode(r, g, b, a = 0, ColourMode:mode = COLOUR_MODE_RGBA) {
     new colour;
 
     switch (mode) {
