@@ -67,7 +67,7 @@ stock GetColourComponents(colour, &r, &g, &b, &a = 0xFF, ColourMode:mode = COLOU
             r = (colour >>> 16) & 0xFF;
             g = (colour >>> 8) & 0xFF;
             b = colour & 0xFF;
-            a = 0;
+            a = 0xFF;
         }
     }
 }
