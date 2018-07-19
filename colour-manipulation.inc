@@ -1,7 +1,7 @@
 #include <a_samp>
 
 #if defined _col_man_included
-    #endinput
+#endinput
 #endif
 #define _col_man_included
 
@@ -15,6 +15,10 @@
 #define COLOR_COMPONENT_B COLOUR_COMPONENT_B
 #define COLOR_COMPONENT_A COLOUR_COMPONENT_A
 
+#define GetColorComponentFractValue GetColourComponentFractValue
+#define GetColorComponentBinaryValue GetColourComponentBinaryValue
+#define AddColorComponentGammaCor AddColourComponentGammaCor
+#define RemoveColorComponentGammaCor RemoveColourComponentGammaCor
 #define GetColorComponents GetColourComponents
 #define GetColorComponent GetColourComponent
 #define SetColorComponent SetColourComponent
@@ -23,6 +27,9 @@
 #define InterpolateColors InterpolateColours
 #define DarkenColor DarkenColour
 #define LightenColor LightenColour
+#define GrayscaleColor GrayscaleColour
+#define GreyscaleColor GrayscaleColour
+#define GreyscaleColour GrayscaleColour
 
 
 enum ColourMode {
@@ -30,13 +37,6 @@ enum ColourMode {
     COLOUR_MODE_ARGB,
     COLOUR_MODE_RGB
 };
-
-
-enum InterpolationMode {
-    INTERPOLATION_MODE_LINEAR,
-    INTERPOLATION_MODE_CORRECTED,
-    INTERPOLATION_MODE_REVERSE,
-}
 
 
 enum ColourComponent {
@@ -47,64 +47,115 @@ enum ColourComponent {
 }
 
 
-stock GetColourComponents(colour, &r, &g, &b, &a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA) {
+stock Float:GetColourComponentFractValue(value) {
+    return float(value) / 255.0;
+}
+
+
+stock GetColourComponentBinaryValue(Float:value) {
+    return floatround(value * 255.0);
+}
+
+
+stock Float:AddColourComponentGammaCor(Float:value) {
+    if (value <= 0.0031308) {
+        value *= 12.92;
+    } else {
+        value = (1.055 * floatpower(value, 1.0 / 2.4)) - 0.055;
+    }
+
+    return value;
+}
+
+
+stock Float:RemoveColourComponentGammaCor(Float:value) {
+    if (value <= 0.04045) {
+        value /= 12.92;
+    } else {
+        value = floatpower((value + 0.055) / 1.055, 2.4);
+    }
+
+    return value;
+}
+
+
+stock GetColourComponents(colour, &Float:r, &Float:g, &Float:b, &Float:a = 1.0, ColourMode:mode = COLOUR_MODE_RGBA) {
     switch (mode) {
         case COLOUR_MODE_RGBA: {
-            r = (colour >>> 24) & 0xFF;
-            g = (colour >>> 16) & 0xFF;
-            b = (colour >>> 8) & 0xFF;
-            a = colour & 0xFF;
+            r = GetColourComponentFractValue((colour >>> 24) & 0xFF);
+            g = GetColourComponentFractValue((colour >>> 16) & 0xFF);
+            b = GetColourComponentFractValue((colour >>> 8) & 0xFF);
+            a = GetColourComponentFractValue(colour & 0xFF);
         }
 
         case COLOUR_MODE_ARGB: {
-            r = (colour >>> 16) & 0xFF;
-            g = (colour >>> 8) & 0xFF;
-            b = colour & 0xFF;
-            a = (colour >>> 24) & 0xFF;
+            r = GetColourComponentFractValue((colour >>> 16) & 0xFF);
+            g = GetColourComponentFractValue((colour >>> 8) & 0xFF);
+            b = GetColourComponentFractValue(colour & 0xFF);
+            a = GetColourComponentFractValue((colour >>> 24) & 0xFF);
         }
 
         case COLOUR_MODE_RGB: {
-            r = (colour >>> 16) & 0xFF;
-            g = (colour >>> 8) & 0xFF;
-            b = colour & 0xFF;
-            a = 0xFF;
+            r = GetColourComponentFractValue((colour >>> 16) & 0xFF);
+            g = GetColourComponentFractValue((colour >>> 8) & 0xFF);
+            b = GetColourComponentFractValue(colour & 0xFF);
+            a = 1.0;
         }
     }
 }
 
 
-stock GetColourComponent(colour, ColourComponent:component, ColourMode:mode = COLOUR_MODE_RGBA) {
-    new components[4];
+stock Float:GetColourComponent(colour, ColourComponent:component, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:components[4];
     GetColourComponents(colour, components[0], components[1], components[2], components[3], mode);
 
     return components[_:component];
 }
 
 
-stock SetColourComponent(colour, ColourComponent:component, value, ColourMode:mode = COLOUR_MODE_RGBA) {
-    new components[4];
+stock SetColourComponent(colour, ColourComponent:component, Float:value, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:components[4];
     GetColourComponents(colour, components[0], components[1], components[2], components[3], mode);
 
-    components[_:component] = value & 0xFF;
+    if (0.0 <= value <= 1.0) {
+        components[_:component] = value;
+    }
 
     return GetColourCode(components[0], components[1], components[2], components[3], mode);
 }
 
 
-stock GetColourCode(r, g, b, a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA) {
-    new colour;
+stock Float:GetColourBrightness(colour, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:components[4];
+    GetColourComponents(colour, components[0], components[1], components[2], components[3], mode);
+
+    return AddColourComponentGammaCor(
+        0.212655 * RemoveColourComponentGammaCor(components[0]) +
+        0.715158 * RemoveColourComponentGammaCor(components[1]) +
+        0.072187 * RemoveColourComponentGammaCor(components[2])
+    );
+}
+
+
+stock GetColourCode(Float:r, Float:g, Float:b, Float:a = 1.0, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new colour, components[4];
+
+    components[0] = GetColourComponentBinaryValue(r);
+    components[1] = GetColourComponentBinaryValue(g);
+    components[2] = GetColourComponentBinaryValue(b);
+    components[3] = GetColourComponentBinaryValue(a);
 
     switch (mode) {
         case COLOUR_MODE_RGBA: {
-            colour = (a & 0xFF) | ((b & 0xFF) << 8) | ((g & 0xFF) << 16) | ((r & 0xFF) << 24);
+            colour = (components[3] & 0xFF) | ((components[2] & 0xFF) << 8) | ((components[1] & 0xFF) << 16) | ((components[0] & 0xFF) << 24);
         }
 
         case COLOUR_MODE_ARGB: {
-            colour = (b & 0xFF) | ((g & 0xFF) << 8) | ((r & 0xFF) << 16) | ((a & 0xFF) << 24);
+            colour = (components[2] & 0xFF) | ((components[1] & 0xFF) << 8) | ((components[0] & 0xFF) << 16) | ((components[3] & 0xFF) << 24);
         }
 
         case COLOUR_MODE_RGB: {
-            colour = (b & 0xFF) | ((g & 0xFF) << 8) | ((r & 0xFF) << 16);
+            colour = (components[2] & 0xFF) | ((components[1] & 0xFF) << 8) | ((components[0] & 0xFF) << 16);
         }
     }
 
@@ -112,7 +163,9 @@ stock GetColourCode(r, g, b, a = 0xFF, ColourMode:mode = COLOUR_MODE_RGBA) {
 }
 
 
-stock ConvertColour(colour, ColourMode:from, ColourMode:to, alpha = 0xFF) {
+stock ConvertColour(colour, ColourMode:from, ColourMode:to, Float:alpha = 1.0) {
+    new a = GetColourComponentBinaryValue(alpha);
+
     switch (from) {
         case COLOUR_MODE_RGBA: {
             switch (to) {
@@ -141,11 +194,11 @@ stock ConvertColour(colour, ColourMode:from, ColourMode:to, alpha = 0xFF) {
         case COLOUR_MODE_RGB: {
             switch (to) {
                 case COLOUR_MODE_RGBA: {
-                    colour = (colour << 8) | alpha;
+                    colour = (colour << 8) | a;
                 }
 
                 case COLOUR_MODE_ARGB: {
-                    colour = colour | (alpha << 24);
+                    colour = colour | (a << 24);
                 }
             }
         }
@@ -155,45 +208,43 @@ stock ConvertColour(colour, ColourMode:from, ColourMode:to, alpha = 0xFF) {
 }
 
 
-stock InterpolateColours(colour1, colour2, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
-    new colour[2][4], Float:power;
-    GetColourComponents(colour1, colour[0][0], colour[0][1], colour[0][2], colour[0][3], colour_mode);
-    GetColourComponents(colour2, colour[1][0], colour[1][1], colour[1][2], colour[1][3], colour_mode);
-
-    switch (interpolation_mode) {
-        case INTERPOLATION_MODE_LINEAR: {
-            power = 1.0;
-        }
-
-        case INTERPOLATION_MODE_CORRECTED: {
-            power = 2.2;
-        }
-
-        case INTERPOLATION_MODE_REVERSE: {
-            power = 1.0 / 2.2;
-        }
-    }
+stock InterpolateColours(colour1, colour2, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:components[2][4];
+    GetColourComponents(colour1, components[0][0], components[0][1], components[0][2], components[0][3], mode);
+    GetColourComponents(colour2, components[1][0], components[1][1], components[1][2], components[1][3], mode);
 
     for (new i; i < 4; i++) {
-        colour[0][i] += floatround((colour[1][i] - colour[0][i]) * amount);
-        colour[0][i] = floatround(floatpower(float(colour[0][i]) / 255.0, power) * 255.0);
+        components[0][i] = RemoveColourComponentGammaCor(components[0][i]);
+        components[1][i] = RemoveColourComponentGammaCor(components[1][i]);
+
+        components[0][i] += (components[1][i] - components[0][i]) * amount;
+
+        components[0][i] = AddColourComponentGammaCor(components[0][i]);
     }
 
-    return GetColourCode(colour[0][0], colour[0][1], colour[0][2], colour[0][3], colour_mode);
+    return GetColourCode(components[0][0], components[0][1], components[0][2], components[0][3], mode);
 }
 
 
-stock DarkenColour(colour, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
-    new alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, colour_mode),
-        black = ConvertColour(0x000000, COLOUR_MODE_RGB, colour_mode, alpha);
+stock DarkenColour(colour, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, mode),
+        black = ConvertColour(0x000000, COLOUR_MODE_RGB, mode, alpha);
 
-    return InterpolateColours(colour, black, amount, colour_mode, interpolation_mode);
+    return InterpolateColours(colour, black, amount, mode);
 }
 
 
-stock LightenColour(colour, Float:amount, ColourMode:colour_mode = COLOUR_MODE_RGBA, InterpolationMode:interpolation_mode = INTERPOLATION_MODE_LINEAR) {
-    new alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, colour_mode),
-        white = ConvertColour(0xFFFFFF, COLOUR_MODE_RGB, colour_mode, alpha);
+stock LightenColour(colour, Float:amount, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, mode),
+        white = ConvertColour(0xFFFFFF, COLOUR_MODE_RGB, mode, alpha);
 
-    return InterpolateColours(colour, white, amount, colour_mode, interpolation_mode);
+    return InterpolateColours(colour, white, amount, mode);
+}
+
+
+stock GrayscaleColour(colour, ColourMode:mode = COLOUR_MODE_RGBA) {
+    new Float:alpha = GetColourComponent(colour, COLOUR_COMPONENT_A, mode),
+        Float:brightness = GetColourBrightness(colour, mode);
+
+    return GetColourCode(brightness, brightness, brightness, alpha, mode);
 }
