@@ -16,6 +16,16 @@ Include in your code and begin using the library:
 #include <colour-manipulation>
 ```
 
+## Testing
+
+To test, simply run the package:
+
+```bash
+sampctl package run
+```
+
+There is also a separate test script ([samp-grayscale-bitmap](https://github.com/kristoisberg/samp-grayscale-bitmap)) that unfortunately doesn't work yet due to a bug in [samp-bitmapper](https://github.com/Southclaws/samp-bitmapper).
+
 ## Functions
 
 ```pawn
