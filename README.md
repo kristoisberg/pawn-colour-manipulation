@@ -1,5 +1,7 @@
 # PAWN Colour Manipulation
 
+[![sampctl](https://shields.southcla.ws/badge/sampctl-pawn--colour--manipulation-2f2f2f.svg?style=for-the-badge)](https://github.com/kristoisberg/pawn-colour-manipulation)
+
 This library provides a number of easy-to-use colour manipulation functions for PAWN.
 
 ## Installation
