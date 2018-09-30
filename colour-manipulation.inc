@@ -1,7 +1,7 @@
-#include <a_samp>
+#include <float>
 
 #if defined _col_man_included
-#endinput
+    #endinput
 #endif
 #define _col_man_included
 

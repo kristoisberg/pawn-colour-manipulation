@@ -1,9 +1,12 @@
 {
 	"user": "kristoisberg",
-	"repo": "colour-manipulation",
+	"repo": "pawn-colour-manipulation",
 	"entry": "test.pwn",
 	"output": "test.amx",
 	"dependencies": [
+		"sampctl/pawn-stdlib"
+	],
+	"dev_dependencies": [
 		"sampctl/samp-stdlib"
 	]
 }

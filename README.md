@@ -7,7 +7,7 @@ This library provides a number of easy-to-use colour manipulation functions for 
 Simply install to your project:
 
 ```bash
-sampctl package install kristoisberg/colour-manipulation
+sampctl package install kristoisberg/pawn-colour-manipulation
 ```
 
 Include in your code and begin using the library:
