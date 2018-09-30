@@ -1,4 +1,4 @@
-# Colour Manipulation
+# PAWN Colour Manipulation
 
 This library provides a number of easy-to-use colour manipulation functions for PAWN.
 
