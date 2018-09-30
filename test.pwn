@@ -1,3 +1,4 @@
+#include <a_samp>
 #include "colour-manipulation.inc"
 
 
